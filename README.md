@@ -1,2 +1,2 @@
-# DS_ML
-Contain projects related to Data Science &amp; Machine Learning
+# Text Detection
+Perform text detection using Triton Server
