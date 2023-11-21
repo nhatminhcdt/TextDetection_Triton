@@ -25,8 +25,7 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 import numpy as np
-import tritonclient.grpc as grpcclient
-import tritonclient.http as httpclient
+import tritonclient.grpc as grpcclient, httpclient
 import time
 
 client = grpcclient.InferenceServerClient(url="localhost:8001")

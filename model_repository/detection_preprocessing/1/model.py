@@ -28,8 +28,6 @@ import io
 import json
 
 import numpy as np
-import torch
-import torchvision.transforms as transforms
 
 # triton_python_backend_utils is available in every Triton Python model. You
 # need to use this module to create inference requests and responses. It also
@@ -110,14 +108,20 @@ class TritonPythonModel:
                 resize_w = (w // 32) * 32
                 resize_h = (h // 32) * 32
 
-                center_crop = resize_h if resize_w > resize_h else resize_w
-                loader = transforms.Compose(
-                    [transforms.CenterCrop(center_crop), transforms.ToTensor()]
-                )
-
-                im = loader(image)
-                im = torch.unsqueeze(im, 0)
-                return im.permute(0, 2, 3, 1)
+                center_crop = min(resize_w, resize_h)                
+                 # Center crop using numpy slicing
+                img_array = np.array(image)
+                cropped_img_array = img_array[
+                    (h - center_crop) // 2 : (h + center_crop) // 2,
+                    (w - center_crop) // 2 : (w + center_crop) // 2,
+                ]
+                # Convert numpy array back to PIL Image
+                cropped_image = Image.fromarray(cropped_img_array)
+                # Convert PIL Image to a NumPy array and normalize
+                im = np.array(cropped_image) / 255.0
+                im = np.expand_dims(im, axis=0)
+                im = np.transpose(im, (0, 1, 2, 3))  # Change to PyTorch's channel-first format
+                return im
 
             img = in_0.as_numpy()
 

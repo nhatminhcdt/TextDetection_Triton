@@ -177,7 +177,7 @@ docker run --gpus=all -it --shm-size=1g --rm \
 
 - Install a couple of dependencies for our Python backend scripts.
 
-`pip install torchvision opencv-python-headless`
+`pip install opencv-python-headless Pillow`
 
 - Launch Triton
 
@@ -227,4 +227,5 @@ Increase `--shm-size` value when launching triton server, e.g: `--shm-size=1g`
 
 ## Logs
 
+- 2023/11/21: Replace torchvision with Pillow for image preprocessing
 - 2023/11/20: Initial commit
