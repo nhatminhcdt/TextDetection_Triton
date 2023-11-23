@@ -140,9 +140,9 @@ ensemble_scheduling {
 ## Deployment
 
 There are 3 different python backend models that will be served with Triton:
-1. `detection_preprocessing`
-2. `detection_postprocessing`
-3. `recognition_postprocessing`
+>1. `detection_preprocessing`
+>2. `detection_postprocessing`
+>3. `recognition_postprocessing`
 
 To deploy Text Detection and Text Recognition models, we need to convert the models to ONNX format and then create a folder for each model in the `model_repository` folder.
 
@@ -220,6 +220,13 @@ Create version folder for the ensemble model. The version folder can be empty as
 **Solution:**
 Increase `--shm-size` value when launching triton server, e.g: `--shm-size=1g`
 
+3. Error when pushing docker image to GCR
+>`docker push asia.grc.io/mles-class/textdetection_triton:v1.0`
+>-> net/http: request canceled while waiting for connection (Client.Timeout exceeded while awaiting headers)
+
+**Solution:**
+
+
 ## For more information
 | [Triton Model Deployment](https://github.com/triton-inference-server/tutorials/blob/main/Conceptual_Guide/Part_1-model_deployment/README.md) | [Triton Model Ensembles](https://github.com/triton-inference-server/tutorials/blob/main/Conceptual_Guide/Part_5-Model_Ensembles/README.md) |
 | :--- | :--- |
@@ -227,5 +234,6 @@ Increase `--shm-size` value when launching triton server, e.g: `--shm-size=1g`
 
 ## Logs
 
+- 2023/11/22: Package the project into a docker container
 - 2023/11/21: Replace torchvision with Pillow for image preprocessing
 - 2023/11/20: Initial commit
