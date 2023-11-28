@@ -1,0 +1,17 @@
+# -- Usage:
+# docker-compose build
+
+version: '3'
+
+services:
+  text_detection_triton:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+      - "8001:8001"
+      - "8002:8002"
+    restart: always
+    image: asia.gcr.io/mles-class-01/text-detection-triton:latest
+    container_name: text-detection

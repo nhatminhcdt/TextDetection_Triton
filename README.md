@@ -138,6 +138,7 @@ ensemble_scheduling {
 </details>
 
 ## Deployment
+### 1. Deploy the Text Detection and Text Recognition Models
 
 There are 3 different python backend models that will be served with Triton:
 >1. `detection_preprocessing`
@@ -146,7 +147,7 @@ There are 3 different python backend models that will be served with Triton:
 
 To deploy Text Detection and Text Recognition models, we need to convert the models to ONNX format and then create a folder for each model in the `model_repository` folder.
 
-**Step 1: Deploy the Text Detection and Text Recognition Models**
+**Deploy the Text Detection Model**
 
 - Launch NGC TensorFlow container environment with **docker** (Recommended)
 
@@ -155,6 +156,8 @@ To deploy Text Detection and Text Recognition models, we need to convert the mod
 then execute:
 
 `bash utils/export_text_detection.sh`
+
+**Deploy the Text Recognition Model**
 
 - On another terminal, launch NGC TensorFlow container environment with **docker** (Recommended)
 
@@ -165,7 +168,11 @@ then execute:
 `bash utils/export_text_recognition.sh`
 
 
-**Step 2: Launch Triton**
+### 2. Deploy server-side
+
+There are 2 ways to deploy the server-side:
+
+#### 2.1. Deploy server-side using base Triton container
 - Launching the triton server
 
 ```
@@ -178,6 +185,25 @@ docker run --gpus=all -it --shm-size=1g --rm \
 - Install a couple of dependencies for our Python backend scripts.
 
 `pip install opencv-python-headless Pillow`
+
+- Launch Triton
+
+`tritonserver --model-repository=/models`
+
+
+#### 2.2. Deploy server-side using docker compose
+- Run docker compose to build the docker image
+
+```
+docker-compose build
+```
+
+- Run triton server's docker image
+```
+docker run --name text-detection --gpus=all -it --shm-size=1g --rm\
+  -p8000:8000 -p8001:8001 -p8002:8002 -v ${PWD}/model_repository:/models\
+  asia.gcr.io/mles-class-01/text-detection-triton:latest
+```
 
 - Launch Triton
 
@@ -220,12 +246,6 @@ Create version folder for the ensemble model. The version folder can be empty as
 **Solution:**
 Increase `--shm-size` value when launching triton server, e.g: `--shm-size=1g`
 
-3. Error when pushing docker image to GCR
->`docker push asia.grc.io/mles-class/textdetection_triton:v1.0`
->-> net/http: request canceled while waiting for connection (Client.Timeout exceeded while awaiting headers)
-
-**Solution:**
-
 
 ## For more information
 | [Triton Model Deployment](https://github.com/triton-inference-server/tutorials/blob/main/Conceptual_Guide/Part_1-model_deployment/README.md) | [Triton Model Ensembles](https://github.com/triton-inference-server/tutorials/blob/main/Conceptual_Guide/Part_5-Model_Ensembles/README.md) |
@@ -234,6 +254,7 @@ Increase `--shm-size` value when launching triton server, e.g: `--shm-size=1g`
 
 ## Logs
 
+- 2023/11/28: Add docker compose file | Modify scripts | Deploy model to Google Cloud
 - 2023/11/22: Package the project into a docker container
 - 2023/11/21: Replace torchvision with Pillow for image preprocessing
 - 2023/11/20: Initial commit

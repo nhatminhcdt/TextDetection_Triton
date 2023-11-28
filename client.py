@@ -29,19 +29,29 @@ import tritonclient.grpc as grpcclient
 import tritonclient.http as httpclient
 import time
 
-client = grpcclient.InferenceServerClient(url="localhost:8001")
-# client = httpclient.InferenceServerClient(url="localhost:8000")
+SERVER_URL  = "35.240.171.226"
+GCLOUD_DEP  = False
+GRPC_USE    = True
+
+if GRPC_USE:
+  client = grpcclient.InferenceServerClient(url=SERVER_URL) if GCLOUD_DEP\
+    else grpcclient.InferenceServerClient(url="localhost:8001")
+else:
+  client = httpclient.InferenceServerClient(url=SERVER_URL) if GCLOUD_DEP\
+    else httpclient.InferenceServerClient(url="localhost:8000")
 
 image_data = np.fromfile("test/img4.jpg", dtype="uint8")
 image_data = np.expand_dims(image_data, axis=0)
 
-input_tensors = [grpcclient.InferInput("input_image", image_data.shape, "UINT8")]
-# input_tensors = [httpclient.InferInput("input_image", image_data.shape, "UINT8")]
+input_tensors = [grpcclient.InferInput("input_image", image_data.shape, "UINT8")] if GRPC_USE\
+  else [httpclient.InferInput("input_image", image_data.shape, "UINT8")]
 input_tensors[0].set_data_from_numpy(image_data)
+
 # Check inference time consumption
 start_time = time.time()
 results = client.infer(model_name="ensemble_model", inputs=input_tensors)
 end_time = time.time()
+
 # Display inference time consumption in seconds (get 3 decimal places)
 print("Inference time: {:.3f}s".format(end_time - start_time))
 output_data = results.as_numpy("recognized_text").astype(str)
