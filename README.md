@@ -2,6 +2,19 @@
 
 This project is to demonstrate how to use NVIDIA Triton Inference Server to deploy a **text detection** and **recognition model** ensemble. The text detection model is based on [OpenCV Text Detection (EAST text detector)](https://pyimagesearch.com/2018/08/20/opencv-text-detection-east-text-detector/) and the text recognition model is based on [Deep Text Recognition](https://github.com/clovaai/deep-text-recognition-benchmark/blob/master/README.md)
 
+## Environments
+
+- OS Ubuntu 20.04 (WSL2)
+- Python 3.8.10
+- Triton Inference Server 2.34.0
+- NVIDIA GPU Computing Toolkitwith CUDA 11.0
+- OpenCV 4.8.1
+- Pillow 9.3.0
+- ONNX 1.15.0
+- ONNX Runtime 1.16.0
+- Docker 24.0.6
+
+
 ## Triton Model Ensembles
 
 To reduce the number of network calls, we can combine the text detection and text recognition models as well as the image pre/postprocessing into a single ensemble model. The ensemble model will take the full image as input and return the parsed text as output. The ensemble model will execute multiple models in a single network call.
@@ -168,55 +181,81 @@ then execute:
 `bash utils/export_text_recognition.sh`
 
 
-### 2. Deploy server-side
+### 2. Deploy server-side & client-side locally
 
-There are 2 ways to deploy the server-side:
+**To run locally, in the `/app.env` file, make sure to set `IS_GCLOUD_DEP = False`.**
 
-#### 2.1. Deploy server-side using base Triton container
-- Launching the triton server
+There are 2 methods to deploy the server-side.
+
+#### 2.1. Deploy server-side and client-side separately
+
+**In the `/app/.env` file, set `IS_DOCKER_COMPOSE_USE = False`.**
+
+- Build server docker images:
 
 ```
-docker run --gpus=all -it --shm-size=1g --rm \
+docker build ./ -f Dockerfile -t asia.gcr.io/mles-class-01/text-detection-triton:latest
+```
+
+- Launching the triton server:
+
+```
+docker run --name text-detection-triton --gpus=all -it --shm-size=1g --rm \
   -p8000:8000 -p8001:8001 -p8002:8002 \
-  -v ${PWD}:/workspace/ -v ${PWD}/model_repository:/models \
-  nvcr.io/nvidia/tritonserver:23.05-py3
+  -v ${PWD}/model_repository:/models \
+  asia.gcr.io/mles-class-01/text-detection-triton:latest \
+  tritonserver --model-repository=/models
 ```
 
-- Install a couple of dependencies for our Python backend scripts.
+Note: Using port 8000 for HTTP, 8001 for GRPC, and 8002 for metrics.
 
-`pip install opencv-python-headless Pillow`
+- On other terminal, run the application:
 
-- Launch Triton
+```
+python ./app/app.py
+```
 
-`tritonserver --model-repository=/models`
+**Open `http://localhost:7860/` for inference GUI.**
+
+**Note:** You can use `Flipped image` option in case of using webcam to capture image.
 
 
 #### 2.2. Deploy server-side using docker compose
-- Run docker compose to build the docker image
+
+**In the `/app/.env` file, set `IS_DOCKER_COMPOSE_USE = True`.**
+
+- Build docker compose:
 
 ```
 docker-compose build
 ```
 
-- Run triton server's docker image
+- Run docker compose:
+
 ```
-docker run --name text-detection --gpus=all -it --shm-size=1g --rm\
-  -p8000:8000 -p8001:8001 -p8002:8002 -v ${PWD}/model_repository:/models\
-  asia.gcr.io/mles-class-01/text-detection-triton:latest
+docker-compose up
 ```
 
-- Launch Triton
+**Open `http://localhost:7860/` for inference GUI.**
 
-`tritonserver --model-repository=/models`
+**Note:** You can use `Flipped image` option in case of using webcam to capture image.
+
+- Stop and remove the docker-compose service:
+
+```
+docker-compose down
+```
+
+## Visualizations
+
+Model work well with printed text
+
+![DAG](./docs/pics/ref_1.png)
 
 
-## Inference
+but not very good with hand-written text
 
-On command line, run the client script.
-
-`python3 client.py`
-
-Note: Using port 8000 for HTTP, 8001 for GRPC, and 8002 for metrics.
+![DAG](./docs/pics/ref_2.png)
 
 
 ## Tips
@@ -254,6 +293,7 @@ Increase `--shm-size` value when launching triton server, e.g: `--shm-size=1g`
 
 ## Logs
 
+- 2023/12/05: Modify docker compose | Add .env variables
 - 2023/11/28: Add docker compose file | Modify scripts | Deploy model to Google Cloud
 - 2023/11/22: Package the project into a docker container
 - 2023/11/21: Replace torchvision with Pillow for image preprocessing

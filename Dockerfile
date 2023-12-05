@@ -6,8 +6,8 @@ LABEL maintainer="nhatminh.cdt@gmail.com" \
 
 # Prepare environment
 WORKDIR /srv
-ADD ./requirements.txt /srv/requirements.txt
+ADD ./requirements.txt ./requirements.txt
+ADD model_repository ./model_repository
+
 # Install requirements
 RUN pip install -r requirements.txt
-
-ENTRYPOINT [ "bash" ]
